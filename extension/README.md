@@ -18,6 +18,14 @@
 
 扩展本身不下载、不安装 mod；只通过本地 JSON 文件与 mod 通信。
 
+## 安装（从 npm，推荐）
+
+1. 先按上面的「依赖」装好 mod，启动一次游戏确认 `%APPDATA%\TinyPasture\bridge\heartbeat.json` 会更新。
+2. 打开 Coopanion → 左侧「扩展」→ **World**。
+3. 搜索 `cortico-world-pasture`；如果搜索索引还没更新，选「手动填 npm 包名」输入
+   `cortico-world-pasture` 安装。
+4. 重启 Coopanion；在 **World 总览** 里启用「牧场」。
+
 ## 安装（从本机目录）
 
 1. 先按上面的「依赖」装好 mod，启动一次游戏确认 `%APPDATA%\TinyPasture\bridge\heartbeat.json` 会更新。

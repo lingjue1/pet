@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.1
+
+- 首次发布到 npm：`cortico-world-pasture`。
+- README 补充从 npm 安装与手动填包名的方式。
+
 ## 0.1.0
 
 - 首个可安装版本：13 个牧场工具、自动巡视、每小时小日志。
