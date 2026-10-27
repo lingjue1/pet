@@ -1,10 +1,18 @@
 {
   "name": "cortico-world-pasture",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "description": "Coopanion World：连接《动物栏：桌面牧场》，让桌宠查看、喂食、抚摸、买卖动物并写牧场小时报。",
   "license": "MIT",
   "author": "Coopanion Tiny Pasture Bridge contributors",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lingjue1/pet.git"
+  },
+  "homepage": "https://github.com/lingjue1/pet#readme",
+  "bugs": {
+    "url": "https://github.com/lingjue1/pet/issues"
+  },
   "keywords": [
     "cortico-world",
     "cortico",
