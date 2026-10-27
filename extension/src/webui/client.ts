@@ -10,6 +10,7 @@ interface PanelState {
   coin: number | null;
   farm: string;
   budget: number | null;
+  foodLeft: number | null;
   autoCare: boolean;
   autoBuy: boolean;
   allowBuy: boolean;
@@ -70,7 +71,7 @@ function mount(ctx: WebUiPanelContext): void {
   };
   const coinEl = card('金币');
   const animalEl = card('动物');
-  const budgetEl = card('今日额度');
+  const budgetEl = card('喂食可用');
   const autoEl = card('自动巡视');
 
   const actions = ctx.ui.h('div', 'pasture-actions');
@@ -103,7 +104,7 @@ function mount(ctx: WebUiPanelContext): void {
       : '游戏没开或 bridge 没心跳';
     coinEl.textContent = s.coin === null ? '—' : String(s.coin);
     animalEl.textContent = String(s.animals.length);
-    budgetEl.textContent = s.budget === null ? '—' : String(s.budget);
+    budgetEl.textContent = s.foodLeft === null ? '—' : String(s.foodLeft);
     autoEl.textContent = s.autoCare ? '开' : '关';
     list.replaceChildren();
     for (const a of s.animals) {

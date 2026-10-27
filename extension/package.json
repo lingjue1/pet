@@ -1,6 +1,6 @@
 {
   "name": "cortico-world-pasture",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "type": "module",
   "description": "Coopanion World：连接《动物栏：桌面牧场》，让桌宠查看、喂食、抚摸、买卖动物并写牧场小时报。",
   "license": "MIT",

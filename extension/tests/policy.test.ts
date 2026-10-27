@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   chooseAnimalCard,
   findLowStarPair,
+  foodLeft,
   pickFeedTargets,
   slotAction,
   type AnimalLike,
@@ -22,6 +23,13 @@ const animal = (type_id: number, rare: number, is_adult = true): AnimalLike => (
   hunger: 50,
   name: `a${type_id}`,
   code_name: `t${type_id}`,
+});
+
+describe('foodLeft', () => {
+  it('喂食只看实时金币和保留线，不受每日预算限制', () => {
+    expect(foodLeft(1000, 200)).toBe(800);
+    expect(foodLeft(150, 200)).toBe(0);
+  });
 });
 
 describe('chooseAnimalCard', () => {

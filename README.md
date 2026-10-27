@@ -28,7 +28,7 @@ Tiny Pasture（Godot 4.3 + Godot Mod Loader）
 | mod 加载、心跳、自动点「开始游戏」 | 可用 |
 | 读取金币、农场、动物（饥饿/健康/稀有度/产币） | 可用 |
 | 抚摸（`play_action("heart")`） | 可用 |
-| 喂食（花 5 金币买食物丢给最饿的动物） | 可用 |
+| 喂食（每次 5 金币，按实时金币，不占每日预算） | 可用 |
 | 商店分析（动物/物资/设施/装饰页，返回名称、价格、解锁状态） | 可用 |
 | 在物资页买食物并喂给动物（操作完自动关界面） | 可用 |
 | 买动物（开商店 → 选物种 → 买一只 → 接受） | 可用，受每日预算限制 |
@@ -43,8 +43,10 @@ Tiny Pasture（Godot 4.3 + Godot Mod Loader）
 | 每小时小日志（收获/驯养，≤500 字） | 可用 |
 | 买装饰 / 换背景 | 只读目录，购买未实现（下一版） |
 
-> 每日预算默认是**当前金币的 70%**（`dailyBudgetPercent`），另加 `reserveCoins`
-> 花完保留、`confirmOver` 单笔确认线。每笔写入 `dataDir/pasture-state.json`。
+> 喂食预算按**实时金币**算：可用 = 当前金币 - `reserveCoins`，不占每日预算；
+> 只要有动物饥饿且可用 ≥ 5，就可以继续买食物/喂食。
+> 买动物/装饰仍受**当前金币 70%** 的每日预算（`dailyBudgetPercent`）与
+> `reserveCoins`、`confirmOver` 限制。每笔写入 `dataDir/pasture-state.json`。
 > 所有动作都走游戏自己的按钮/方法，金币、空位由游戏校验。
 
 ## 安装 mod

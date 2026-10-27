@@ -7,7 +7,7 @@ import { readFile, writeFile, mkdir, appendFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { Bridge } from './bridge.ts';
 import { PASTURE_CONFIG_GROUP } from './config.ts';
-import { chooseAnimalCard, findLowStarPair, pickFeedTargets, slotAction } from './policy.ts';
+import { chooseAnimalCard, findLowStarPair, foodLeft as foodBudget, pickFeedTargets, slotAction } from './policy.ts';
 
 const SHOP_BUTTON = '/root/Main/MainUI/BG/BT_Shop';
 
@@ -98,7 +98,7 @@ export class PastureWorld {
         name: 'pasture_feed',
         description:
           '一次投喂多份食物（默认 3 份），按动物种类选食物，最多喂最饿的几只。' +
-          '食物会落在避开左右边缘的安全位置。',
+          '食物会落在避开左右边缘的安全位置；喂食按实时金币，不占每日预算。',
         tags: ['write'],
         parameters: {
           type: 'object',
@@ -133,7 +133,7 @@ export class PastureWorld {
         name: 'pasture_buy_food',
         description:
           '打开商店的「物资」页，选中一种食物买下并喂给最饿的动物（默认买最便宜的）。' +
-          '操作完会自动关闭界面。',
+          '喂食按实时金币，不占每日预算；操作完会自动关闭界面。',
         tags: ['write'],
         parameters: {
           type: 'object',
@@ -170,7 +170,8 @@ export class PastureWorld {
       },
       {
         name: 'pasture_spend',
-        description: '查看牧场金币、今天已花多少、每日预算、预留金币，以及现在还能花多少。',
+        description:
+          '查看金币、今日已花、每日预算、预留；喂食按实时金币，每日预算只约束买动物/装饰。',
         tags: ['read'],
         parameters: { type: 'object', additionalProperties: false, properties: {} },
         handler: async () => this.spendReport(),
@@ -378,6 +379,7 @@ export class PastureWorld {
       coin: s?.coin ?? null,
       farm: s?.farm_name ?? '',
       budget: s ? this.#dailyCap(s) : null,
+      foodLeft: s ? foodBudget(s.coin, this.cfg.reserveCoins) : null,
       autoCare: this.autoCare,
       autoBuy: this.autoBuy,
       allowBuy: this.cfg.allowBuy === true,
@@ -512,7 +514,7 @@ export class PastureWorld {
     let wanted = Math.max(1, Math.min(5, Number(count) || 1));
     let guard = null;
     while (wanted >= 1) {
-      guard = await this.#afford(5 * wanted, true);
+      guard = await this.#foodAfford(5 * wanted, true);
       if (guard.ok) break;
       wanted -= 1;
     }
@@ -523,6 +525,8 @@ export class PastureWorld {
     const fed = [];
     for (const target of targets) {
       try {
+        const live = await this.bridge.send('summary', {}, 5000);
+        if (foodBudget(live.coin, this.cfg.reserveCoins) < 5) break;
         await this.#feedOne(target);
         fed.push(target);
       } catch {
@@ -631,7 +635,7 @@ export class PastureWorld {
       await this.#closeShop();
       return `物资页没找到「${name}」。`;
     }
-    const guard = await this.#afford(picked.price, confirm === true);
+    const guard = await this.#foodAfford(picked.price, confirm === true);
     if (!guard.ok) {
       await this.bridge.send('shop_close');
       return guard.message;
@@ -686,14 +690,13 @@ export class PastureWorld {
     const spent = await this.#spentToday();
     const budget = this.#dailyCap(summary);
     const budgetLeft = budget - spent;
-    const spendable = Math.max(
-      0,
-      Math.min(budgetLeft, summary.coin - this.cfg.reserveCoins),
-    );
+    const foodAvailable = foodBudget(summary.coin, this.cfg.reserveCoins);
+    const spendable = Math.max(0, Math.min(budgetLeft, foodAvailable));
     return (
       `金币 ${summary.coin}；今日已花 ${spent}/${budget}` +
-      `（每日预算 = 当前金币的 ${this.dailyBudgetPercent}%）；` +
-      `预留 ${this.cfg.reserveCoins}；现在还能花 ${spendable}。`
+      `（每日预算只约束买动物/装饰）；` +
+      `喂食按实时金币，扣掉保留 ${this.cfg.reserveCoins} 后可用 ${foodAvailable}；` +
+      `买动物/装饰还能花 ${spendable}。`
     );
   }
 
@@ -894,11 +897,7 @@ export class PastureWorld {
   async #autoCare(before) {
     this.caring = true;
     try {
-      const spent = await this.#spentToday();
-      let spendable = Math.min(
-        Math.max(0, this.#dailyCap(before) - spent),
-        Math.max(0, before.coin - this.cfg.reserveCoins),
-      );
+      let spendable = foodBudget(before.coin, this.cfg.reserveCoins);
       const threshold = this.cfg.autoFeedThreshold ?? this.cfg.hungerThreshold;
       const hungry = [...before.animals]
         .filter((a) => a.hunger < threshold)
@@ -908,6 +907,9 @@ export class PastureWorld {
       for (const animal of hungry) {
         if (spendable < 5) break;
         try {
+          const live = await this.bridge.send('summary', {}, 5000);
+          spendable = foodBudget(live.coin, this.cfg.reserveCoins);
+          if (spendable < 5) break;
           await this.#feedOne(animal);
           fed.push(animal);
           spendable -= 5;
@@ -1155,7 +1157,7 @@ export class PastureWorld {
     const summary = await this.#summaryOrThrow();
     const spent = await this.#spentToday();
     const budgetLeft = this.#dailyCap(summary) - spent;
-    const coinLeft = summary.coin - this.cfg.reserveCoins;
+    const coinLeft = foodBudget(summary.coin, this.cfg.reserveCoins);
     const cap = Math.min(budgetLeft, coinLeft);
     if (price > cap) {
       return {
@@ -1164,6 +1166,28 @@ export class PastureWorld {
           `这笔要 ${price} 金币，但现在最多只能花 ${Math.max(0, cap)}` +
           `（今日预算剩 ${Math.max(0, budgetLeft)}，需保留 ${this.cfg.reserveCoins}，` +
           `当前金币 ${summary.coin}）。先不买。`,
+      };
+    }
+    if (price > this.cfg.confirmOver && !confirm) {
+      return {
+        ok: false,
+        message:
+          `这笔要 ${price} 金币，超过单笔确认线 ${this.cfg.confirmOver}。` +
+          '先问用户；同意后带 confirm:true 再调用。',
+      };
+    }
+    return { ok: true, summary };
+  }
+
+  async #foodAfford(price, confirm) {
+    const summary = await this.#summaryOrThrow();
+    const coinLeft = foodBudget(summary.coin, this.cfg.reserveCoins);
+    if (price > coinLeft) {
+      return {
+        ok: false,
+        message:
+          `食物要 ${price} 金币，扣掉保留 ${this.cfg.reserveCoins} 后只剩 ` +
+          `${Math.max(0, coinLeft)}（当前金币 ${summary.coin}）。先不买。`,
       };
     }
     if (price > this.cfg.confirmOver && !confirm) {

@@ -55,9 +55,9 @@ World 页的 **牧场控制台** 提供：
 | `enabled` | false | 是否启用 |
 | `bridgeDir` | 空 | 自定义 bridge 目录，空则用 `%APPDATA%\TinyPasture\bridge` |
 | `pollSeconds` | 30 | 状态轮询间隔 |
-| `dailyBudget` | 500 | 每日预算兜底值（未设百分比时） |
-| `dailyBudgetPercent` | 70 | 每日预算 = 当前金币 × 70% |
-| `reserveCoins` | 200 | 花完后至少保留的金币 |
+| `dailyBudget` | 500 | 每日预算兜底值；只约束买动物/装饰 |
+| `dailyBudgetPercent` | 70 | 每日预算 = 当前金币 × 70%；喂食不占用 |
+| `reserveCoins` | 200 | 花完后至少保留的金币（喂食也保留） |
 | `confirmOver` | 300 | 单笔超过这个金额要先问用户 |
 | `allowBuy` | false | 允许花金币买东西 |
 | `autoCare` | true | 自动巡视 |
@@ -76,6 +76,10 @@ World 页的 **牧场控制台** 提供：
 | `digestMaxChars` | 500 | 小日志最大字数 |
 | `hungerThreshold` | 30 | 饥饿事件阈值 |
 | `cursorRestore` | false | 喂食后用 PowerShell 还原鼠标；默认关闭 |
+
+喂食预算按**实时金币**算：可用 = 当前金币 - `reserveCoins`，不占用每日预算。
+只要还有动物饥饿且可用 ≥ 5，就可以继续买食物/喂食；买动物和装饰仍受
+`dailyBudgetPercent` 与 `reserveCoins` 限制。
 
 默认偏保守：花钱、卖动物、刷星级、自动买栏位都关闭；需要时在配置里打开。
 

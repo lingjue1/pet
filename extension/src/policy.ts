@@ -16,6 +16,11 @@ export interface AnimalLike {
   hunger: number;
 }
 
+/** 喂食预算：按当前金币实时计算，只扣保留线，不受每日预算限制。 */
+export function foodLeft(coin: number, reserve: number): number {
+  return Math.max(0, coin - reserve);
+}
+
 /** 买动物：每种不超过上限；资金 > 最贵候选 1.5 倍时买最贵，否则买最便宜。 */
 export function chooseAnimalCard(
   cards: readonly CardLike[],
