@@ -1,0 +1,65 @@
+{
+  "name": "cortico-world-pasture",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Coopanion World：连接《动物栏：桌面牧场》，让桌宠查看、喂食、抚摸、买卖动物并写牧场小时报。",
+  "license": "MIT",
+  "author": "Coopanion Tiny Pasture Bridge contributors",
+  "keywords": [
+    "cortico-world",
+    "cortico",
+    "coopanion",
+    "tiny-pasture",
+    "desktop-pet",
+    "game"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "packageManager": "pnpm@11.28.6",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "src",
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "describe.json"
+  ],
+  "cortico": {
+    "kind": "world",
+    "api": 6,
+    "displayName": "牧场",
+    "tags": [
+      "game"
+    ],
+    "describe": "describe.json",
+    "webUiClient": "./dist/webui.js",
+    "locales": {
+      "zh": {
+        "displayName": "牧场"
+      },
+      "en": {
+        "displayName": "Pasture"
+      }
+    }
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "describe": "tsx scripts/describe.mts",
+    "build:webui": "esbuild src/webui/client.ts --bundle --format=esm --platform=browser --outfile=dist/webui.js",
+    "prepack": "corepack pnpm build:webui"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "cortico": "^0.2.8",
+    "esbuild": "^0.28.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

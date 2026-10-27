@@ -1,0 +1,337 @@
+{
+  "tools": [
+    {
+      "name": "pasture_status",
+      "description": "查看《动物栏：桌面牧场》的实时状态：金币、牧场名、动物数量，以及每只动物的饥饿/健康/稀有度。用户问牧场、动物、金币时先用它。",
+      "tags": [
+        "read"
+      ],
+      "parameters": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {}
+      },
+      "summary": {
+        "zh": "查看牧场金币、动物数量与每只动物的饥饿/健康/稀有度。",
+        "en": "Show pasture coins, animals and their hunger/health/rarity."
+      }
+    },
+    {
+      "name": "pasture_pet",
+      "description": "在牧场里抚摸一只动物（默认摸最饿的那只）。这是无花费的互动，会让动物冒出爱心。",
+      "tags": [
+        "write"
+      ],
+      "parameters": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "index": {
+            "type": "integer",
+            "description": "第几只（0 开始，按饥饿从低到高）；不填摸最饿的。"
+          }
+        }
+      },
+      "summary": {
+        "zh": "抚摸一只动物（默认最饿的）。",
+        "en": "Pet an animal (the hungriest by default)."
+      }
+    },
+    {
+      "name": "pasture_feed",
+      "description": "一次投喂多份食物（默认 3 份），按动物种类选食物，最多喂最饿的几只。食物会落在避开左右边缘的安全位置。",
+      "tags": [
+        "write"
+      ],
+      "parameters": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "count": {
+            "type": "integer",
+            "description": "投喂几份，默认 3，最大 5。"
+          }
+        }
+      },
+      "summary": {
+        "zh": "一次投喂多份食物（默认 3 份），按物种选食物并避开左右边缘。",
+        "en": "Feed several foods at once, chosen per species and away from edges."
+      }
+    },
+    {
+      "name": "pasture_shop",
+      "description": "打开《动物栏：桌面牧场》商店的指定页面（animals 动物 / items 物资 / facility 设施 / decoration 装饰），返回货架上的名称、价格、是否解锁，让 Coopanion 自己分析该买什么。分析完会自动关闭界面。",
+      "tags": [
+        "read",
+        "write"
+      ],
+      "parameters": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "page": {
+            "type": "string",
+            "enum": [
+              "animals",
+              "items",
+              "facility",
+              "decoration"
+            ],
+            "default": "animals",
+            "description": "要打开并分析的商店页面。"
+          }
+        }
+      },
+      "summary": {
+        "zh": "打开商店页并返回货架目录，分析完自动关闭。",
+        "en": "Open a shop page, list the catalog, then close it."
+      }
+    },
+    {
+      "name": "pasture_buy_food",
+      "description": "打开商店的「物资」页，选中一种食物买下并喂给最饿的动物（默认买最便宜的）。操作完会自动关闭界面。",
+      "tags": [
+        "write"
+      ],
+      "parameters": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "食物名，例如「胡萝卜」；不填选最便宜的。"
+          },
+          "confirm": {
+            "type": "boolean",
+            "description": "金额超过 confirmOver 时，先问用户，得到同意后带 confirm:true 再调用。"
+          }
+        }
+      },
+      "summary": {
+        "zh": "买一种食物喂给最饿的动物，操作完自动关闭。",
+        "en": "Buy a food and feed the hungriest animal, then close the shop."
+      }
+    },
+    {
+      "name": "pasture_buy_animal",
+      "description": "用金币在牧场商店买一只动物（打开商店 → 选物种 → 买一只 → 接受）。受每日预算与 allowBuy 开关限制；不指定 type_id 时按每种上限与资金策略选，买完自动喂。",
+      "tags": [
+        "write"
+      ],
+      "parameters": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "type_id": {
+            "type": "integer",
+            "description": "物种 type_id；不填选最便宜的。"
+          },
+          "max_price": {
+            "type": "integer",
+            "description": "这一笔最多花多少金币。"
+          },
+          "confirm": {
+            "type": "boolean",
+            "description": "金额超过 confirmOver 时，先问用户，得到同意后带 confirm:true 再调用。"
+          }
+        }
+      },
+      "summary": {
+        "zh": "买一只动物；每种不超过上限，资金充裕时优先最贵，买完自动喂。",
+        "en": "Buy an animal within the per-species cap, preferring the most expensive when rich, then feed it."
+      }
+    },
+    {
+      "name": "pasture_spend",
+      "description": "查看牧场金币、今天已花多少、每日预算、预留金币，以及现在还能花多少。",
+      "tags": [
+        "read"
+      ],
+      "parameters": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {}
+      },
+      "summary": {
+        "zh": "查看今日花费、预算、预留金币和还能花多少。",
+        "en": "Show today spend, budget, reserve and remaining coins."
+      }
+    },
+    {
+      "name": "pasture_auto",
+      "description": "开启/关闭自动巡视，并可改间隔与每轮最多喂几只。开启后每轮读取状态，自动喂最饿的动物、摸一只，并通过事件告诉用户自己干了什么。",
+      "tags": [
+        "write"
+      ],
+      "parameters": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "description": "是否开启自动巡视。"
+          },
+          "interval_seconds": {
+            "type": "integer",
+            "description": "每轮间隔秒数，最小 10。"
+          },
+          "max_feed": {
+            "type": "integer",
+            "description": "每轮最多喂几只，0 表示不自动喂。"
+          },
+          "buy_type_id": {
+            "type": "integer",
+            "description": "自动买动物时指定物种 type_id；不填按策略选（资金充裕时优先最贵）。"
+          }
+        }
+      },
+      "summary": {
+        "zh": "开关自动巡视，调整间隔与每轮最多喂几只。",
+        "en": "Toggle auto care and adjust interval/max feeds."
+      }
+    },
+    {
+      "name": "pasture_sell",
+      "description": "出售一只 4 星以下的成年动物（4 星及以上保留）。不带 confirm 只列候选；用户确认后带 confirm:true 再调用，可以用 name 指定。",
+      "tags": [
+        "write"
+      ],
+      "parameters": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "动物名或代号；不填选稀有度最低的。"
+          },
+          "confirm": {
+            "type": "boolean",
+            "description": "确认出售；不带时只列候选，不卖。"
+          }
+        }
+      },
+      "summary": {
+        "zh": "卖一只 4 星以下成年动物；单只不卖，同种 2 只低星可全卖重刷。",
+        "en": "Sell an adult below 4 stars; never a single one, but a low-star pair may be cleared for a reroll."
+      }
+    },
+    {
+      "name": "pasture_new",
+      "description": "购买新牧场/动物栏位：金币达到价格 2 倍才考虑；不带 confirm 只报价，带 confirm:true 才真正购买。",
+      "tags": [
+        "write"
+      ],
+      "parameters": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "confirm": {
+            "type": "boolean",
+            "description": "确认购买；不带时只报价。"
+          }
+        }
+      },
+      "summary": {
+        "zh": "价格 2 倍时询问、4 倍时自动解锁新牧场/栏位。",
+        "en": "Ask at 2x the slot price and auto-buy at 4x."
+      }
+    },
+    {
+      "name": "pasture_trim",
+      "description": "把超过每种 2 只上限的 4 星以下成年动物自动卖掉；同种只剩 2 只且都低星时可以全卖重刷，单只不卖。",
+      "tags": [
+        "write"
+      ],
+      "parameters": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {}
+      },
+      "summary": {
+        "zh": "清理超量/低星动物，规则与自动巡视一致。",
+        "en": "Trim excess/low-star animals with the same rules as auto care."
+      }
+    },
+    {
+      "name": "pasture_log",
+      "description": "读取最近的牧场小时报（默认 3 份，每份不超过 500 字）。",
+      "tags": [
+        "read"
+      ],
+      "parameters": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "limit": {
+            "type": "integer",
+            "description": "读取最近几份，默认 3，最多 20。"
+          }
+        }
+      },
+      "summary": {
+        "zh": "读取最近的牧场小时报。",
+        "en": "Read recent hourly pasture reports."
+      }
+    },
+    {
+      "name": "pasture_start",
+      "description": "如果 Tiny Pasture 停在开始菜单，点一下「开始游戏」。mod 启动时也会自动点一次。",
+      "tags": [
+        "write"
+      ],
+      "parameters": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {}
+      },
+      "summary": {
+        "zh": "在开始菜单点「开始游戏」。",
+        "en": "Press Start on the title menu."
+      }
+    }
+  ],
+  "events": [
+    {
+      "type": "pasture.hungry",
+      "description": {
+        "zh": "有动物饿了。",
+        "en": "An animal is hungry."
+      }
+    },
+    {
+      "type": "pasture.sick",
+      "description": {
+        "zh": "有动物生病了。",
+        "en": "An animal is sick."
+      }
+    },
+    {
+      "type": "pasture.care",
+      "description": {
+        "zh": "自动巡视完成一轮。",
+        "en": "One auto-care round finished."
+      }
+    },
+    {
+      "type": "pasture.newAnimal",
+      "description": {
+        "zh": "牧场里多了新动物。",
+        "en": "A new animal joined."
+      }
+    },
+    {
+      "type": "pasture.digest",
+      "description": {
+        "zh": "每小时收获与驯养小结（≤500 字）。",
+        "en": "Hourly harvest/taming digest (max 500 chars)."
+      }
+    },
+    {
+      "type": "pasture.slotOffer",
+      "description": {
+        "zh": "金币达到槽位价格 2 倍时的解锁询问。",
+        "en": "Ask whether to unlock a slot at 2x its price."
+      }
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+dist/
+stage/
+stage2/
+stage3/
+gml/
+gml.tar.gz
+*.log
+bridge/
+logs/
+node_modules/
+.DS_Store
+Thumbs.db
